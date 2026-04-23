@@ -1,0 +1,66 @@
+{% extends 'sms/base.html' %}
+{% block title %}Search Results – EduPro{% endblock %}
+{% block page_title %}Student Results{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Result Search</div>
+    <div class="section-subtitle">Search for a student to view their results</div>
+  </div>
+</div>
+
+<div class="card mb-4 fade-in">
+  <div class="card-body-custom">
+    <form method="get" class="d-flex gap-3 align-items-end">
+      <div style="flex:1">
+        <label class="form-label-custom">Search Student</label>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ q }}" placeholder="Name or enrollment number…" style="width:100%"/>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary-custom"><i class="bi bi-search"></i> Search</button>
+    </form>
+  </div>
+</div>
+
+{% if students %}
+<div class="card fade-in">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-people me-2 text-primary"></i>Search Results</h5>
+    <span style="font-size:13px;color:#94a3b8">{{ students.count }} found</span>
+  </div>
+  <div class="card-body-custom p-0">
+    <table class="table-custom">
+      <thead><tr><th>Student</th><th>Enrollment No</th><th>Course</th><th>Semester</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar">{{ s.user.first_name.0 }}{{ s.user.last_name.0 }}</div>
+              <span style="font-weight:600">{{ s.user.get_full_name }}</span>
+            </div>
+          </td>
+          <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">{{ s.enrollment_no }}</code></td>
+          <td>{{ s.course.code }}</td>
+          <td>{% if s.current_semester %}Sem {{ s.current_semester.number }}{% else %}—{% endif %}</td>
+          <td>
+            <a href="?student_id={{ s.pk }}" class="btn-primary-custom btn-sm-custom">
+              <i class="bi bi-award"></i> View Result
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% elif q %}
+<div class="card fade-in" style="padding:48px;text-align:center">
+  <i class="bi bi-search" style="font-size:40px;color:#94a3b8;display:block;margin-bottom:8px"></i>
+  <p style="color:#64748b">No students found for "{{ q }}"</p>
+</div>
+{% endif %}
+{% endblock %}

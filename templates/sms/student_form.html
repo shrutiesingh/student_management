@@ -1,0 +1,194 @@
+{% extends 'sms/base.html' %}
+{% block title %}{{ action }} Student – EduPro{% endblock %}
+{% block page_title %}{{ action }} Student{% endblock %}
+{% block content %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <!-- Personal Info -->
+  <div class="card mb-4 fade-in">
+    <div class="card-header-custom">
+      <h5><i class="bi bi-person-fill me-2 text-primary"></i>Personal Information</h5>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label-custom">First Name *</label>
+          <input type="text" name="first_name" class="form-control-custom" required
+            value="{{ student.user.first_name|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Last Name *</label>
+          <input type="text" name="last_name" class="form-control-custom" required
+            value="{{ student.user.last_name|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Enrollment No *</label>
+          <input type="text" name="enrollment_no" class="form-control-custom" required
+            value="{{ student.enrollment_no|default:'' }}"
+            {% if action == 'Edit' %}readonly{% endif %}/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Email *</label>
+          <input type="email" name="email" class="form-control-custom" required
+            value="{{ student.email|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Mobile *</label>
+          <input type="text" name="mobile" class="form-control-custom" required
+            value="{{ student.mobile|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Date of Birth *</label>
+          <input type="date" name="date_of_birth" class="form-control-custom" required
+            value="{{ student.date_of_birth|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Gender *</label>
+          <select name="gender" class="form-select-custom" required>
+            <option value="">Select...</option>
+            <option value="M" {% if student.gender == 'M' %}selected{% endif %}>Male</option>
+            <option value="F" {% if student.gender == 'F' %}selected{% endif %}>Female</option>
+            <option value="O" {% if student.gender == 'O' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Blood Group</label>
+          <select name="blood_group" class="form-select-custom">
+            <option value="">Select...</option>
+            {% for val, label in student.BLOOD_GROUP_CHOICES|default:"" %}
+            <option value="{{ val }}" {% if student.blood_group == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+            <!-- static fallback -->
+            {% if not student %}
+            <option value="A+">A+</option><option value="A-">A-</option>
+            <option value="B+">B+</option><option value="B-">B-</option>
+            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+            <option value="O+">O+</option><option value="O-">O-</option>
+            {% endif %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Password {% if action == 'Add' %}*{% else %}(leave blank to keep){% endif %}</label>
+          <input type="password" name="password" class="form-control-custom"
+            {% if action == 'Add' %}required{% endif %}
+            placeholder="{% if action == 'Edit' %}Leave blank to keep current{% endif %}"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Address -->
+  <div class="card mb-4 fade-in">
+    <div class="card-header-custom">
+      <h5><i class="bi bi-geo-alt-fill me-2 text-primary"></i>Address</h5>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label-custom">Address *</label>
+          <textarea name="address" class="form-control-custom" rows="2" required>{{ student.address|default:'' }}</textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">City *</label>
+          <input type="text" name="city" class="form-control-custom" required value="{{ student.city|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">State *</label>
+          <input type="text" name="state" class="form-control-custom" required value="{{ student.state|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Pincode *</label>
+          <input type="text" name="pincode" class="form-control-custom" required value="{{ student.pincode|default:'' }}"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guardian Info -->
+  <div class="card mb-4 fade-in">
+    <div class="card-header-custom">
+      <h5><i class="bi bi-house-heart-fill me-2 text-primary"></i>Guardian Information</h5>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label-custom">Father's Name *</label>
+          <input type="text" name="father_name" class="form-control-custom" required value="{{ student.father_name|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Father's Mobile *</label>
+          <input type="text" name="father_mobile" class="form-control-custom" required value="{{ student.father_mobile|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Father's Occupation</label>
+          <input type="text" name="father_occupation" class="form-control-custom" value="{{ student.father_occupation|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Mother's Name *</label>
+          <input type="text" name="mother_name" class="form-control-custom" required value="{{ student.mother_name|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Mother's Mobile</label>
+          <input type="text" name="mother_mobile" class="form-control-custom" value="{{ student.mother_mobile|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Guardian Name</label>
+          <input type="text" name="guardian_name" class="form-control-custom" value="{{ student.guardian_name|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Guardian Relation</label>
+          <input type="text" name="guardian_relation" class="form-control-custom" value="{{ student.guardian_relation|default:'' }}"/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label-custom">Guardian Mobile</label>
+          <input type="text" name="guardian_mobile" class="form-control-custom" value="{{ student.guardian_mobile|default:'' }}"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Academic -->
+  <div class="card mb-4 fade-in">
+    <div class="card-header-custom">
+      <h5><i class="bi bi-book-fill me-2 text-primary"></i>Academic Information</h5>
+    </div>
+    <div class="card-body-custom">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label-custom">Course *</label>
+          <select name="course" class="form-select-custom" required>
+            <option value="">Select Course...</option>
+            {% for c in courses %}
+            <option value="{{ c.pk }}" {% if student.course_id == c.pk %}selected{% endif %}>{{ c.name }} ({{ c.code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label-custom">Current Semester</label>
+          <select name="current_semester" class="form-select-custom">
+            <option value="">Select Semester...</option>
+            {% for sem in semesters %}
+            <option value="{{ sem.pk }}" {% if student.current_semester_id == sem.pk %}selected{% endif %}>{{ sem }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-3 fade-in">
+    <button type="submit" class="btn-primary-custom">
+      <i class="bi bi-check-lg"></i> {{ action }} Student
+    </button>
+    <a href="{% url 'student_list' %}" class="btn-secondary-custom">
+      <i class="bi bi-x"></i> Cancel
+    </a>
+  </div>
+</form>
+
+<style>
+textarea.form-control-custom{resize:vertical;}
+</style>
+{% endblock %}

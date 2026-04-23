@@ -1,0 +1,84 @@
+{% extends 'sms/base.html' %}
+{% block title %}Teacher Dashboard – EduPro{% endblock %}
+{% block page_title %}Teacher Dashboard{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Hello, {{ teacher.user.first_name }} 👋</div>
+    <div class="section-subtitle">{{ teacher.designation }} · {{ teacher.department }}</div>
+  </div>
+  <a href="{% url 'attendance_mark' %}" class="btn-primary-custom">
+    <i class="bi bi-calendar-check"></i> Mark Attendance
+  </a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4 fade-in fade-in-1">
+    <div class="stat-card" style="--stat-color:#4f46e5">
+      <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
+      <div>
+        <div class="stat-value">{{ my_subjects.count }}</div>
+        <div class="stat-label">My Subjects</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 fade-in fade-in-2">
+    <div class="stat-card" style="--stat-color:#10b981">
+      <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+      <div>
+        <div class="stat-value">{{ today_attendance }}</div>
+        <div class="stat-label">Today's Entries</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-xl-6 fade-in">
+    <div class="card">
+      <div class="card-header-custom">
+        <h5><i class="bi bi-journal-text me-2 text-primary"></i>My Subjects</h5>
+        <a href="{% url 'marks_entry' %}" class="btn-primary-custom btn-sm-custom"><i class="bi bi-pencil"></i> Enter Marks</a>
+      </div>
+      <div class="card-body-custom p-0">
+        <table class="table-custom">
+          <thead><tr><th>Subject</th><th>Code</th><th>Semester</th><th>Credits</th></tr></thead>
+          <tbody>
+            {% for subj in my_subjects %}
+            <tr>
+              <td style="font-weight:600">{{ subj.name }}</td>
+              <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">{{ subj.code }}</code></td>
+              <td>Sem {{ subj.semester.number }}</td>
+              <td>{{ subj.credits }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:24px">No subjects assigned.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-6 fade-in">
+    <div class="card">
+      <div class="card-header-custom">
+        <h5><i class="bi bi-megaphone-fill me-2 text-primary"></i>Notices</h5>
+        <a href="{% url 'notice_add' %}" class="btn-primary-custom btn-sm-custom"><i class="bi bi-plus"></i> Post</a>
+      </div>
+      <div class="card-body-custom">
+        {% for n in notices %}
+        <div class="notice-card">
+          <div class="notice-title">{{ n.title }}</div>
+          <div class="notice-meta">{{ n.created_at|timesince }} ago</div>
+          <div class="notice-content">{{ n.content|truncatechars:80 }}</div>
+        </div>
+        {% empty %}
+        <p style="color:#94a3b8;font-size:14px;text-align:center;padding:20px 0">No notices.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

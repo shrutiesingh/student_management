@@ -1,0 +1,203 @@
+{% extends 'sms/base.html' %}
+{% block title %}Mark Attendance – EduPro{% endblock %}
+{% block page_title %}Mark Attendance{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Mark Attendance</div>
+    <div class="section-subtitle">Select subject and date to mark student attendance</div>
+  </div>
+</div>
+
+<!-- Step 1: Select Subject & Date -->
+<div class="card mb-4 fade-in">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-sliders me-2 text-primary"></i>Select Subject & Date</h5>
+  </div>
+  <div class="card-body-custom">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label-custom">Subject *</label>
+        <select id="subjectSelect" class="form-select-custom">
+          <option value="">-- Choose Subject --</option>
+          {% for subj in subjects %}
+          <option value="{{ subj.pk }}">{{ subj.name }} ({{ subj.code }}) – Sem {{ subj.semester.number }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-custom">Date *</label>
+        <input type="date" id="attDate" class="form-control-custom" value="{{ today }}"/>
+      </div>
+      <div class="col-md-2">
+        <button type="button" id="loadBtn" class="btn-primary-custom" style="width:100%">
+          <i class="bi bi-arrow-right-circle"></i> Load Students
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step 2: Attendance Form -->
+<div id="attendanceSection" style="display:none">
+  <form method="post" id="attForm">
+    {% csrf_token %}
+    <input type="hidden" name="subject" id="hiddenSubject"/>
+    <input type="hidden" name="date" id="hiddenDate"/>
+
+    <div class="card fade-in">
+      <div class="card-header-custom">
+        <h5><i class="bi bi-people-fill me-2 text-primary"></i>
+          Student Attendance – <span id="subjectLabel"></span>
+          <span class="ms-2" style="font-weight:400;color:#94a3b8;font-size:13px" id="dateLabel"></span>
+        </h5>
+        <div class="d-flex gap-2">
+          <button type="button" onclick="markAll('P')" class="btn-secondary-custom btn-sm-custom">
+            <i class="bi bi-check-all"></i> All Present
+          </button>
+          <button type="button" onclick="markAll('A')" class="btn-secondary-custom btn-sm-custom">
+            <i class="bi bi-x-circle"></i> All Absent
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary bar -->
+      <div style="padding:12px 24px;background:#f8fafc;border-bottom:1px solid #f1f5f9;display:flex;gap:24px;align-items:center">
+        <span style="font-size:13px;color:#64748b">
+          <i class="bi bi-people me-1"></i><strong id="totalCount">0</strong> students
+        </span>
+        <span style="font-size:13px;color:#10b981">
+          <i class="bi bi-check-circle-fill me-1"></i>Present: <strong id="presentCount">0</strong>
+        </span>
+        <span style="font-size:13px;color:#ef4444">
+          <i class="bi bi-x-circle-fill me-1"></i>Absent: <strong id="absentCount">0</strong>
+        </span>
+      </div>
+
+      <div class="card-body-custom p-0">
+        <table class="table-custom" id="attTable">
+          <thead>
+            <tr>
+              <th style="width:48px">#</th>
+              <th>Student</th>
+              <th>Enrollment No</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="studentRows">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div style="padding:20px 24px;border-top:1px solid #f1f5f9;display:flex;gap:12px">
+        <button type="submit" class="btn-primary-custom">
+          <i class="bi bi-check-circle-fill"></i> Save Attendance
+        </button>
+        <button type="button" onclick="document.getElementById('attendanceSection').style.display='none'"
+          class="btn-secondary-custom">Cancel</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- Recent attendance records hint -->
+<div class="card mt-4 fade-in">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-clock-history me-2 text-primary"></i>Quick Links</h5>
+  </div>
+  <div class="card-body-custom">
+    <div class="d-flex gap-3 flex-wrap">
+      <a href="{% url 'attendance_view' %}" class="btn-secondary-custom">
+        <i class="bi bi-eye"></i> View Attendance Records
+      </a>
+      <a href="{% url 'student_list' %}" class="btn-secondary-custom">
+        <i class="bi bi-people"></i> Student Directory
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+const AJAX_URL = "{% url 'ajax_students_for_subject' %}";
+let studentData = [];
+
+document.getElementById('loadBtn').addEventListener('click', function(){
+  const subjectId = document.getElementById('subjectSelect').value;
+  const attDate   = document.getElementById('attDate').value;
+  if (!subjectId) { alert('Please select a subject.'); return; }
+  if (!attDate)   { alert('Please select a date.'); return; }
+
+  fetch(`${AJAX_URL}?subject_id=${subjectId}`)
+    .then(r => r.json())
+    .then(data => {
+      studentData = data.students;
+      renderStudents(data.students);
+      document.getElementById('hiddenSubject').value = subjectId;
+      document.getElementById('hiddenDate').value    = attDate;
+      document.getElementById('subjectLabel').textContent =
+        document.getElementById('subjectSelect').selectedOptions[0].text;
+      document.getElementById('dateLabel').textContent = attDate;
+      document.getElementById('attendanceSection').style.display = 'block';
+      document.getElementById('totalCount').textContent = data.students.length;
+      updateCounts();
+    });
+});
+
+function renderStudents(students) {
+  const tbody = document.getElementById('studentRows');
+  if (!students.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:32px">No students in this semester.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = students.map((s, i) => `
+    <tr id="row_${s.id}">
+      <td style="color:#94a3b8;font-size:13px">${i+1}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar">${s.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>
+          <div style="font-weight:600;font-size:14px">${s.name}</div>
+        </div>
+      </td>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">${s.enrollment}</code></td>
+      <td>
+        <div style="display:flex;gap:8px">
+          <div class="att-pill present">
+            <input type="radio" name="status_${s.id}" id="P_${s.id}" value="P" onchange="updateCounts()"/>
+            <label for="P_${s.id}">✓ Present</label>
+          </div>
+          <div class="att-pill absent">
+            <input type="radio" name="status_${s.id}" id="A_${s.id}" value="A" checked onchange="updateCounts()"/>
+            <label for="A_${s.id}">✗ Absent</label>
+          </div>
+          <div class="att-pill leave">
+            <input type="radio" name="status_${s.id}" id="L_${s.id}" value="L" onchange="updateCounts()"/>
+            <label for="L_${s.id}">~ Leave</label>
+          </div>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function markAll(status) {
+  studentData.forEach(s => {
+    const el = document.getElementById(`${status}_${s.id}`);
+    if (el) el.checked = true;
+  });
+  updateCounts();
+}
+
+function updateCounts() {
+  let present = 0, absent = 0;
+  studentData.forEach(s => {
+    const checked = document.querySelector(`input[name="status_${s.id}"]:checked`);
+    if (checked?.value === 'P') present++;
+    else absent++;
+  });
+  document.getElementById('presentCount').textContent = present;
+  document.getElementById('absentCount').textContent = absent;
+}
+</script>
+{% endblock %}

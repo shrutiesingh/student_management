@@ -1,0 +1,97 @@
+{% extends 'sms/base.html' %}
+{% block title %}View Attendance – EduPro{% endblock %}
+{% block page_title %}View Attendance{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Attendance Records</div>
+    <div class="section-subtitle">Filter by subject and date</div>
+  </div>
+  <a href="{% url 'attendance_mark' %}" class="btn-primary-custom">
+    <i class="bi bi-pencil-square"></i> Mark Attendance
+  </a>
+</div>
+
+<!-- Filter -->
+<div class="card mb-4 fade-in">
+  <div class="card-body-custom">
+    <form method="get" class="d-flex gap-3 flex-wrap align-items-end">
+      <div>
+        <label class="form-label-custom">Subject</label>
+        <select name="subject" class="form-select-custom" style="width:260px">
+          <option value="">-- All Subjects --</option>
+          {% for subj in subjects %}
+          <option value="{{ subj.pk }}" {% if sel_subject and sel_subject.pk == subj.pk %}selected{% endif %}>
+            {{ subj.name }} ({{ subj.code }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="form-label-custom">Date</label>
+        <input type="date" name="date" class="form-control-custom" value="{{ att_date }}"/>
+      </div>
+      <button type="submit" class="btn-primary-custom"><i class="bi bi-search"></i> Search</button>
+    </form>
+  </div>
+</div>
+
+{% if sel_subject %}
+<!-- Summary -->
+<div class="row g-3 mb-4 fade-in">
+  {% with total=records.count %}
+  {% with present_count=records|length %}
+  <div class="col-md-3">
+    <div class="stat-card" style="--stat-color:#4f46e5">
+      <div class="stat-icon"><i class="bi bi-people"></i></div>
+      <div><div class="stat-value">{{ records.count }}</div><div class="stat-label">Total Records</div></div>
+    </div>
+  </div>
+  {% endwith %}{% endwith %}
+</div>
+
+<div class="card fade-in">
+  <div class="card-header-custom">
+    <h5>
+      <i class="bi bi-calendar-check-fill me-2 text-primary"></i>
+      {{ sel_subject.name }} – {{ att_date }}
+    </h5>
+    <span style="font-size:13px;color:#94a3b8">{{ records.count }} records</span>
+  </div>
+  <div class="card-body-custom p-0">
+    <table class="table-custom">
+      <thead>
+        <tr><th>#</th><th>Student</th><th>Enrollment No</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td style="color:#94a3b8">{{ forloop.counter }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar">{{ r.student.user.first_name.0 }}{{ r.student.user.last_name.0 }}</div>
+              <span style="font-weight:600">{{ r.student.user.get_full_name }}</span>
+            </div>
+          </td>
+          <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">{{ r.student.enrollment_no }}</code></td>
+          <td>
+            {% if r.status == 'P' %}<span class="badge-present">✓ Present</span>
+            {% elif r.status == 'A' %}<span class="badge-absent">✗ Absent</span>
+            {% else %}<span class="badge-leave">~ Leave</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:32px">No records for this date.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card fade-in" style="padding:48px;text-align:center">
+  <i class="bi bi-calendar3" style="font-size:48px;color:#94a3b8;display:block;margin-bottom:12px"></i>
+  <p style="color:#64748b;font-size:15px">Select a subject and date to view attendance records.</p>
+</div>
+{% endif %}
+{% endblock %}

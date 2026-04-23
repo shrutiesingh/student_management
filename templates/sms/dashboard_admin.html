@@ -1,0 +1,126 @@
+{% extends 'sms/base.html' %}
+{% block title %}Admin Dashboard – EduPro{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Welcome back, {{ request.user.first_name }} 👋</div>
+    <div class="section-subtitle">Here's what's happening at your institution today.</div>
+  </div>
+  <a href="{% url 'student_add' %}" class="btn-primary-custom">
+    <i class="bi bi-plus-lg"></i> Add Student
+  </a>
+</div>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-xl-3 col-md-6 fade-in fade-in-1">
+    <div class="stat-card" style="--stat-color:#4f46e5">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-badge">Active</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 fade-in fade-in-2">
+    <div class="stat-card" style="--stat-color:#06b6d4">
+      <div class="stat-icon"><i class="bi bi-person-badge-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ total_teachers }}</div>
+        <div class="stat-label">Total Teachers</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 fade-in fade-in-3">
+    <div class="stat-card" style="--stat-color:#10b981">
+      <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ total_courses }}</div>
+        <div class="stat-label">Courses Offered</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 fade-in fade-in-4">
+    <div class="stat-card" style="--stat-color:#f59e0b">
+      <div class="stat-icon"><i class="bi bi-journal-text"></i></div>
+      <div>
+        <div class="stat-value">{{ total_subjects }}</div>
+        <div class="stat-label">Subjects</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Recent Students -->
+  <div class="col-xl-8 fade-in">
+    <div class="card">
+      <div class="card-header-custom">
+        <h5><i class="bi bi-people-fill me-2 text-primary"></i>Recent Admissions</h5>
+        <a href="{% url 'student_list' %}" class="btn-secondary-custom btn-sm-custom">View All</a>
+      </div>
+      <div class="card-body-custom p-0">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Student</th><th>Enrollment No</th><th>Course</th><th>Semester</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in recent_students %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar">{{ s.user.first_name.0 }}{{ s.user.last_name.0 }}</div>
+                  <div>
+                    <div style="font-weight:600;font-size:14px">{{ s.user.get_full_name }}</div>
+                    <div style="font-size:12px;color:#94a3b8">{{ s.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">{{ s.enrollment_no }}</code></td>
+              <td>{{ s.course.code }}</td>
+              <td>{% if s.current_semester %}Sem {{ s.current_semester.number }}{% else %}-{% endif %}</td>
+              <td>
+                <a href="{% url 'student_detail' s.pk %}" class="btn-secondary-custom btn-sm-custom">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:32px">No students yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notices -->
+  <div class="col-xl-4 fade-in">
+    <div class="card">
+      <div class="card-header-custom">
+        <h5><i class="bi bi-megaphone-fill me-2 text-primary"></i>Notice Board</h5>
+        <a href="{% url 'notice_add' %}" class="btn-primary-custom btn-sm-custom">
+          <i class="bi bi-plus"></i> Post
+        </a>
+      </div>
+      <div class="card-body-custom">
+        {% for n in notices %}
+        <div class="notice-card">
+          <div class="notice-title">{{ n.title }}</div>
+          <div class="notice-meta"><i class="bi bi-clock me-1"></i>{{ n.created_at|timesince }} ago · {{ n.get_audience_display }}</div>
+          <div class="notice-content">{{ n.content|truncatechars:100 }}</div>
+        </div>
+        {% empty %}
+        <p style="color:#94a3b8;font-size:14px;text-align:center;padding:20px 0">No notices posted.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

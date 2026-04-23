@@ -1,0 +1,96 @@
+{% extends 'sms/base.html' %}
+{% block title %}Students – EduPro{% endblock %}
+{% block page_title %}Students{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Student Directory</div>
+    <div class="section-subtitle">{{ students.count }} students found</div>
+  </div>
+  {% if role == 'admin' or request.user.is_superuser %}
+  <a href="{% url 'student_add' %}" class="btn-primary-custom">
+    <i class="bi bi-person-plus-fill"></i> Add Student
+  </a>
+  {% endif %}
+</div>
+
+<!-- Filters -->
+<div class="card mb-4 fade-in">
+  <div class="card-body-custom">
+    <form method="get" class="d-flex gap-3 flex-wrap align-items-end">
+      <div>
+        <label class="form-label-custom">Search</label>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ q }}" placeholder="Name or enrollment no…"/>
+        </div>
+      </div>
+      <div>
+        <label class="form-label-custom">Course</label>
+        <select name="course" class="form-select-custom" style="width:180px">
+          <option value="">All Courses</option>
+          {% for c in courses %}
+          <option value="{{ c.pk }}" {% if request.GET.course == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-primary-custom">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+      <a href="{% url 'student_list' %}" class="btn-secondary-custom">
+        <i class="bi bi-x-circle"></i> Clear
+      </a>
+    </form>
+  </div>
+</div>
+
+<div class="card fade-in">
+  <div class="card-body-custom p-0">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Student</th><th>Enrollment No</th><th>Course</th>
+          <th>Semester</th><th>Mobile</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in students %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar">{{ s.user.first_name.0 }}{{ s.user.last_name.0 }}</div>
+              <div>
+                <div style="font-weight:700;font-size:14px">{{ s.user.get_full_name }}</div>
+                <div style="font-size:12px;color:#94a3b8">{{ s.email }}</div>
+              </div>
+            </div>
+          </td>
+          <td><code style="background:#f1f5f9;padding:3px 10px;border-radius:6px;font-size:12px">{{ s.enrollment_no }}</code></td>
+          <td>{{ s.course.code }}</td>
+          <td>{% if s.current_semester %}Sem {{ s.current_semester.number }}{% else %}<span style="color:#94a3b8">—</span>{% endif %}</td>
+          <td>{{ s.mobile }}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <a href="{% url 'student_detail' s.pk %}" class="btn-secondary-custom btn-sm-custom">
+                <i class="bi bi-eye"></i>
+              </a>
+              {% if role == 'admin' or request.user.is_superuser %}
+              <a href="{% url 'student_edit' s.pk %}" class="btn-primary-custom btn-sm-custom">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:40px">
+          <i class="bi bi-people" style="font-size:32px;display:block;margin-bottom:8px"></i>
+          No students found.
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

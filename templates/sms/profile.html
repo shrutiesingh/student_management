@@ -1,0 +1,103 @@
+{% extends 'sms/base.html' %}
+{% block title %}My Profile – EduPro{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div class="section-title">My Profile</div>
+</div>
+
+{% if role == 'student' and student %}
+  {% with s=student %}
+  <div class="card mb-4 fade-in" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);color:#fff;border:none">
+    <div class="card-body-custom">
+      <div class="d-flex align-items-center gap-4">
+        <div class="avatar-xl">{{ s.user.first_name.0 }}{{ s.user.last_name.0 }}</div>
+        <div>
+          <div style="font-size:24px;font-weight:800">{{ s.user.get_full_name }}</div>
+          <div style="font-size:14px;color:rgba(255,255,255,.6);margin-top:4px">
+            {{ s.enrollment_no }} · {{ s.course.name }}
+            {% if s.current_semester %} · Semester {{ s.current_semester.number }}{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6 fade-in">
+      <div class="card">
+        <div class="card-header-custom"><h5><i class="bi bi-person me-2 text-primary"></i>Personal Info</h5></div>
+        <div class="card-body-custom">
+          <div class="row g-2">
+            <div class="col-6"><div class="info-row"><span class="info-label">Date of Birth</span><span class="info-value">{{ s.date_of_birth }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Gender</span><span class="info-value">{{ s.get_gender_display }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Blood Group</span><span class="info-value">{{ s.blood_group|default:"—" }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Mobile</span><span class="info-value">{{ s.mobile }}</span></div></div>
+            <div class="col-12"><div class="info-row"><span class="info-label">Address</span><span class="info-value">{{ s.address }}, {{ s.city }}, {{ s.state }} – {{ s.pincode }}</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 fade-in">
+      <div class="card">
+        <div class="card-header-custom"><h5><i class="bi bi-house-heart me-2 text-primary"></i>Guardian Info</h5></div>
+        <div class="card-body-custom">
+          <div class="row g-2">
+            <div class="col-6"><div class="info-row"><span class="info-label">Father</span><span class="info-value">{{ s.father_name }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Father Mobile</span><span class="info-value">{{ s.father_mobile }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Mother</span><span class="info-value">{{ s.mother_name }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Mother Mobile</span><span class="info-value">{{ s.mother_mobile|default:"—" }}</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+
+{% elif role == 'teacher' and teacher %}
+  {% with t=teacher %}
+  <div class="card mb-4 fade-in" style="background:linear-gradient(135deg,#0c4a6e,#164e63);color:#fff;border:none">
+    <div class="card-body-custom">
+      <div class="d-flex align-items-center gap-4">
+        <div class="avatar-xl" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">{{ t.user.first_name.0 }}{{ t.user.last_name.0 }}</div>
+        <div>
+          <div style="font-size:24px;font-weight:800">{{ t.user.get_full_name }}</div>
+          <div style="font-size:14px;color:rgba(255,255,255,.6);margin-top:4px">
+            {{ t.employee_id }} · {{ t.designation }} · {{ t.department }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-6 fade-in">
+      <div class="card">
+        <div class="card-header-custom"><h5><i class="bi bi-person me-2 text-primary"></i>My Details</h5></div>
+        <div class="card-body-custom">
+          <div class="row g-2">
+            <div class="col-6"><div class="info-row"><span class="info-label">Mobile</span><span class="info-value">{{ t.mobile }}</span></div></div>
+            <div class="col-6"><div class="info-row"><span class="info-label">Joining Date</span><span class="info-value">{{ t.joining_date }}</span></div></div>
+            <div class="col-12"><div class="info-row"><span class="info-label">Address</span><span class="info-value">{{ t.address }}</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 fade-in">
+      <div class="card">
+        <div class="card-header-custom"><h5><i class="bi bi-journal-text me-2 text-primary"></i>My Subjects</h5></div>
+        <div class="card-body-custom">
+          {% for subj in t.subjects.all %}
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f5f9">
+            <span style="font-weight:600;font-size:14px">{{ subj.name }}</span>
+            <code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">Sem {{ subj.semester.number }}</code>
+          </div>
+          {% empty %}
+          <p style="color:#94a3b8;font-size:14px">No subjects assigned.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+{% endif %}
+{% endblock %}

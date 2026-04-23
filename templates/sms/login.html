@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Login – EduPro SMS</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;
+  background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(79,70,229,.25) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 70%, rgba(6,182,212,.2) 0%, transparent 60%);
+  pointer-events:none;
+}
+.grid-bg{
+  position:fixed;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(79,70,229,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(79,70,229,.08) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.login-wrapper{
+  width:100%;max-width:440px;padding:20px;position:relative;z-index:10;
+}
+.login-logo{
+  text-align:center;margin-bottom:32px;
+  animation:fadeDown .6s ease both;
+}
+.logo-circle{
+  width:72px;height:72px;background:linear-gradient(135deg,#4f46e5,#06b6d4);
+  border-radius:22px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:32px;font-weight:900;color:#fff;margin-bottom:16px;
+  box-shadow:0 0 40px rgba(79,70,229,.4);
+}
+.login-title{font-size:26px;font-weight:800;color:#fff;line-height:1.2;}
+.login-sub{font-size:14px;color:rgba(255,255,255,.5);margin-top:4px;}
+
+.login-card{
+  background:rgba(255,255,255,.05);backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:36px;
+  animation:fadeUp .6s ease .1s both;
+  box-shadow:0 24px 64px rgba(0,0,0,.4);
+}
+.form-label{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);margin-bottom:8px;display:block;}
+.input-group-custom{position:relative;margin-bottom:20px;}
+.input-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:rgba(255,255,255,.3);font-size:16px;pointer-events:none;
+}
+.form-input{
+  width:100%;padding:12px 14px 12px 42px;
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;color:#fff;font-family:inherit;font-size:14px;
+  transition:all .25s ease;outline:none;
+}
+.form-input::placeholder{color:rgba(255,255,255,.25);}
+.form-input:focus{
+  border-color:rgba(79,70,229,.7);background:rgba(79,70,229,.1);
+  box-shadow:0 0 0 3px rgba(79,70,229,.15);
+}
+.btn-login{
+  width:100%;padding:13px;background:linear-gradient(135deg,#4f46e5,#6366f1);
+  border:none;border-radius:12px;color:#fff;font-family:inherit;
+  font-size:15px;font-weight:700;cursor:pointer;transition:all .25s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:8px;
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,70,229,.5);}
+.btn-login:active{transform:translateY(0);}
+
+.role-hints{
+  display:flex;gap:8px;margin-top:24px;
+  animation:fadeUp .6s ease .2s both;
+}
+.role-hint{
+  flex:1;padding:10px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);border-radius:12px;text-align:center;
+  font-size:11px;color:rgba(255,255,255,.4);
+}
+.role-hint strong{display:block;color:rgba(255,255,255,.7);font-size:12px;margin-bottom:2px;}
+
+.alert-login{
+  padding:10px 14px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+  border-radius:10px;color:#fca5a5;font-size:13px;display:flex;align-items:center;
+  gap:8px;margin-bottom:16px;
+}
+.alert-success-login{
+  padding:10px 14px;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);
+  border-radius:10px;color:#6ee7b7;font-size:13px;display:flex;align-items:center;
+  gap:8px;margin-bottom:16px;
+}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="login-wrapper">
+  <div class="login-logo">
+    <div class="logo-circle">E</div>
+    <div class="login-title">EduPro SMS</div>
+    <div class="login-sub">Student Management System</div>
+  </div>
+
+  <div class="login-card">
+    {% for msg in messages %}
+    <div class="{% if msg.tags == 'success' %}alert-success-login{% else %}alert-login{% endif %}">
+      <i class="bi {% if msg.tags == 'success' %}bi-check-circle{% else %}bi-exclamation-circle{% endif %}"></i>
+      {{ msg }}
+    </div>
+    {% endfor %}
+
+    <form method="post">
+      {% csrf_token %}
+      <div>
+        <label class="form-label">Username</label>
+        <div class="input-group-custom">
+          <i class="bi bi-person input-icon"></i>
+          <input type="text" name="username" class="form-input" placeholder="Enter your username" required autofocus/>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Password</label>
+        <div class="input-group-custom">
+          <i class="bi bi-lock input-icon"></i>
+          <input type="password" name="password" class="form-input" placeholder="Enter your password" required/>
+        </div>
+      </div>
+      <button type="submit" class="btn-login">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+    </form>
+  </div>
+
+  <div class="role-hints">
+    <div class="role-hint"><strong>Admin</strong>Full access</div>
+    <div class="role-hint"><strong>Teacher</strong>Classes & marks</div>
+    <div class="role-hint"><strong>Student</strong>View own data</div>
+  </div>
+</div>
+</body>
+</html>

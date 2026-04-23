@@ -1,0 +1,140 @@
+{% extends 'sms/base.html' %}
+{% block title %}Result – {{ student.user.get_full_name }}{% endblock %}
+{% block page_title %}Academic Result{% endblock %}
+{% block content %}
+
+<!-- Student Header -->
+<div class="card mb-4 fade-in" style="background:linear-gradient(135deg,#0f172a,#1e1b4b);color:#fff;border:none">
+  <div class="card-body-custom">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <div class="avatar-xl" style="background:linear-gradient(135deg,#4f46e5,#06b6d4)">
+        {{ student.user.first_name.0 }}{{ student.user.last_name.0 }}
+      </div>
+      <div style="flex:1">
+        <div style="font-size:24px;font-weight:800;margin-bottom:4px">{{ student.user.get_full_name }}</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:8px">
+          <span style="font-size:13px;color:rgba(255,255,255,.6)">
+            <i class="bi bi-hash me-1"></i>{{ student.enrollment_no }}
+          </span>
+          <span style="font-size:13px;color:rgba(255,255,255,.6)">
+            <i class="bi bi-book me-1"></i>{{ student.course.name }}
+          </span>
+          {% if student.current_semester %}
+          <span style="font-size:13px;color:rgba(255,255,255,.6)">
+            <i class="bi bi-collection me-1"></i>Current Sem: {{ student.current_semester.number }}
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'student_detail' student.pk %}" class="btn-secondary-custom btn-sm-custom" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff">
+          <i class="bi bi-person"></i> Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if semesters_data %}
+  {% for sem_name, sem_data in semesters_data.items %}
+  <div class="card mb-4 fade-in">
+    <div class="card-header-custom" style="background:{% if sem_data.pct >= 75 %}#f0fdf4{% elif sem_data.pct >= 50 %}#fffbeb{% else %}#fef2f2{% endif %}">
+      <div>
+        <h5 style="margin:0">
+          <i class="bi bi-collection-fill me-2" style="color:{% if sem_data.pct >= 75 %}#10b981{% elif sem_data.pct >= 50 %}#f59e0b{% else %}#ef4444{% endif %}"></i>
+          {{ sem_name }}
+        </h5>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:800;color:{% if sem_data.pct >= 75 %}#10b981{% elif sem_data.pct >= 50 %}#f59e0b{% else %}#ef4444{% endif %}">
+            {{ sem_data.pct }}%
+          </div>
+          <div style="font-size:12px;color:#64748b">{{ sem_data.obtained|floatformat:0 }} / {{ sem_data.total }}</div>
+        </div>
+        <div style="width:60px">
+          <div style="font-size:11px;font-weight:700;text-align:center;margin-bottom:4px;color:{% if sem_data.pct >= 75 %}#10b981{% elif sem_data.pct >= 50 %}#f59e0b{% else %}#ef4444{% endif %}">
+            {% if sem_data.pct >= 75 %}PASS{% elif sem_data.pct >= 50 %}AVERAGE{% else %}FAIL{% endif %}
+          </div>
+          <div class="progress-custom">
+            <div class="progress-bar-custom {% if sem_data.pct < 50 %}progress-bar-danger{% elif sem_data.pct >= 75 %}progress-bar-success{% endif %}"
+                 style="width:{{ sem_data.pct }}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body-custom p-0">
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Exam Type</th>
+            <th>Max Marks</th>
+            <th>Obtained</th>
+            <th>Percentage</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in sem_data.marks %}
+          <tr>
+            <td>
+              <div style="font-weight:700;font-size:14px">{{ m.subject.name }}</div>
+              <div style="font-size:12px;color:#94a3b8">{{ m.subject.code }}</div>
+            </td>
+            <td>{{ m.exam_type.name }}</td>
+            <td style="color:#64748b">{{ m.exam_type.max_marks }}</td>
+            <td style="font-weight:800;font-size:16px;color:{% if m.is_pass %}#10b981{% else %}#ef4444{% endif %}">
+              {{ m.obtained }}
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="width:60px">
+                  <div class="progress-custom">
+                    <div class="progress-bar-custom {% if m.percentage < 50 %}progress-bar-danger{% elif m.percentage >= 75 %}progress-bar-success{% endif %}"
+                         style="width:{{ m.percentage }}%"></div>
+                  </div>
+                </div>
+                <span style="font-size:13px;font-weight:600;color:#64748b">{{ m.percentage }}%</span>
+              </div>
+            </td>
+            <td>
+              {% if m.is_pass %}
+              <span class="badge-pass">✓ Pass</span>
+              {% else %}
+              <span class="badge-fail">✗ Fail</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f8fafc">
+            <td colspan="3" style="font-weight:700;font-size:14px;padding:14px 16px">Semester Total</td>
+            <td style="font-weight:800;font-size:16px;padding:14px 16px;color:{% if sem_data.pct >= 50 %}#10b981{% else %}#ef4444{% endif %}">
+              {{ sem_data.obtained|floatformat:0 }} / {{ sem_data.total }}
+            </td>
+            <td colspan="2" style="font-weight:700;font-size:15px;padding:14px 16px;color:{% if sem_data.pct >= 50 %}#10b981{% else %}#ef4444{% endif %}">
+              {{ sem_data.pct }}%
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  {% endfor %}
+
+{% else %}
+<div class="card fade-in" style="padding:64px;text-align:center">
+  <i class="bi bi-award" style="font-size:56px;color:#94a3b8;display:block;margin-bottom:12px"></i>
+  <div style="font-size:18px;font-weight:700;color:#64748b;margin-bottom:6px">No Results Available</div>
+  <p style="color:#94a3b8;font-size:14px">Marks have not been entered for this student yet.</p>
+  {% if role != 'student' %}
+  <a href="{% url 'marks_entry' %}" class="btn-primary-custom" style="margin-top:16px;display:inline-flex">
+    <i class="bi bi-pencil-square"></i> Enter Marks
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'sms/base.html' %}
+{% block title %}My Attendance – EduPro{% endblock %}
+{% block page_title %}My Attendance{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">My Attendance</div>
+    <div class="section-subtitle">{{ student.user.get_full_name }} · {{ student.enrollment_no }}</div>
+  </div>
+</div>
+
+<!-- Subject-wise Summary -->
+<div class="row g-3 mb-4">
+  {% for subj_name, s in summary.items %}
+  <div class="col-xl-3 col-md-6 fade-in">
+    <div class="card" style="padding:20px">
+      <div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:4px">{{ subj_name }}</div>
+      <div style="font-size:26px;font-weight:800;color:{% if s.pct >= 75 %}#10b981{% elif s.pct >= 60 %}#f59e0b{% else %}#ef4444{% endif %}">
+        {{ s.pct }}%
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:8px">{{ s.present }}/{{ s.total }} classes</div>
+      <div class="progress-custom">
+        <div class="progress-bar-custom {% if s.pct < 60 %}progress-bar-danger{% elif s.pct >= 75 %}progress-bar-success{% endif %}"
+             style="width:{{ s.pct }}%"></div>
+      </div>
+      {% if s.pct < 75 %}
+      <small style="color:#ef4444;font-size:11px;margin-top:4px;display:block">⚠ Below 75% requirement</small>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card" style="padding:40px;text-align:center">
+      <i class="bi bi-calendar-x" style="font-size:40px;color:#94a3b8;display:block;margin-bottom:8px"></i>
+      <p style="color:#94a3b8">No attendance records found.</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Detailed Records -->
+<div class="card fade-in">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-list-check me-2 text-primary"></i>Recent Attendance Records</h5>
+  </div>
+  <div class="card-body-custom p-0">
+    <table class="table-custom">
+      <thead>
+        <tr><th>Date</th><th>Subject</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr>
+          <td style="font-weight:600">{{ r.date|date:"d M Y" }}</td>
+          <td>{{ r.subject.name }}</td>
+          <td>
+            {% if r.status == 'P' %}<span class="badge-present">Present</span>
+            {% elif r.status == 'A' %}<span class="badge-absent">Absent</span>
+            {% else %}<span class="badge-leave">Leave</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:24px">No records.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

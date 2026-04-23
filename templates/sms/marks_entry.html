@@ -1,0 +1,188 @@
+{% extends 'sms/base.html' %}
+{% block title %}Enter Marks – EduPro{% endblock %}
+{% block page_title %}Enter Marks{% endblock %}
+{% block content %}
+
+<div class="section-header fade-in">
+  <div>
+    <div class="section-title">Marks Entry</div>
+    <div class="section-subtitle">Enter examination marks for students</div>
+  </div>
+  <a href="{% url 'result_view' %}" class="btn-secondary-custom">
+    <i class="bi bi-award"></i> View Results
+  </a>
+</div>
+
+<!-- Config -->
+<div class="card mb-4 fade-in">
+  <div class="card-header-custom">
+    <h5><i class="bi bi-sliders me-2 text-primary"></i>Select Exam Details</h5>
+  </div>
+  <div class="card-body-custom">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label-custom">Subject *</label>
+        <select id="subjectSel" class="form-select-custom">
+          <option value="">-- Choose Subject --</option>
+          {% for subj in subjects %}
+          <option value="{{ subj.pk }}" data-sem="{{ subj.semester.pk }}">
+            {{ subj.name }} ({{ subj.code }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-custom">Exam Type *</label>
+        <select id="examTypeSel" class="form-select-custom">
+          <option value="">-- Choose Exam --</option>
+          {% for et in exam_types %}
+          <option value="{{ et.pk }}" data-max="{{ et.max_marks }}" data-pass="{{ et.pass_marks }}">
+            {{ et.name }} (Max: {{ et.max_marks }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-custom">Semester *</label>
+        <select id="semesterSel" class="form-select-custom">
+          <option value="">-- Choose Semester --</option>
+          {% for sem in semesters %}
+          <option value="{{ sem.pk }}">{{ sem }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="button" id="loadMarksBtn" class="btn-primary-custom" style="width:100%">
+          <i class="bi bi-arrow-right-circle"></i> Load
+        </button>
+      </div>
+    </div>
+    <div id="examInfo" style="display:none;margin-top:12px;padding:12px 16px;background:#f0f9ff;border-radius:10px;border-left:3px solid #06b6d4">
+      <span style="font-size:13px;color:#0369a1">
+        <i class="bi bi-info-circle me-1"></i>
+        Max Marks: <strong id="maxInfo">-</strong> &nbsp;|&nbsp; Pass Marks: <strong id="passInfo">-</strong>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Marks Form -->
+<div id="marksSection" style="display:none">
+  <form method="post" id="marksForm">
+    {% csrf_token %}
+    <input type="hidden" name="subject"   id="hiddenSubject"/>
+    <input type="hidden" name="exam_type" id="hiddenExamType"/>
+    <input type="hidden" name="semester"  id="hiddenSemester"/>
+
+    <div class="card fade-in">
+      <div class="card-header-custom">
+        <h5>
+          <i class="bi bi-pencil-square me-2 text-primary"></i>
+          Enter Marks – <span id="marksLabel"></span>
+        </h5>
+        <div class="d-flex align-items-center gap-3">
+          <span style="font-size:13px;color:#94a3b8">Pass: <strong id="passDisplay">-</strong> | Max: <strong id="maxDisplay">-</strong></span>
+        </div>
+      </div>
+      <div class="card-body-custom p-0">
+        <table class="table-custom" id="marksTable">
+          <thead>
+            <tr>
+              <th style="width:48px">#</th>
+              <th>Student</th>
+              <th>Enrollment No</th>
+              <th style="width:180px">Marks Obtained</th>
+              <th style="width:100px">Status</th>
+            </tr>
+          </thead>
+          <tbody id="marksRows"></tbody>
+        </table>
+      </div>
+      <div style="padding:20px 24px;border-top:1px solid #f1f5f9;display:flex;gap:12px">
+        <button type="submit" class="btn-primary-custom">
+          <i class="bi bi-save-fill"></i> Save All Marks
+        </button>
+        <button type="button" onclick="document.getElementById('marksSection').style.display='none'"
+          class="btn-secondary-custom">Cancel</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+const AJAX_STUDENTS = "{% url 'ajax_students_for_subject' %}";
+let maxMarks = 100, passMarks = 35;
+
+document.getElementById('examTypeSel').addEventListener('change', function(){
+  const opt = this.selectedOptions[0];
+  maxMarks  = parseInt(opt.dataset.max || 100);
+  passMarks = parseInt(opt.dataset.pass || 35);
+  if (opt.value) {
+    document.getElementById('examInfo').style.display = 'block';
+    document.getElementById('maxInfo').textContent  = maxMarks;
+    document.getElementById('passInfo').textContent = passMarks;
+    document.getElementById('maxDisplay').textContent  = maxMarks;
+    document.getElementById('passDisplay').textContent = passMarks;
+  }
+});
+
+document.getElementById('loadMarksBtn').addEventListener('click', function(){
+  const subjectId  = document.getElementById('subjectSel').value;
+  const examTypeId = document.getElementById('examTypeSel').value;
+  const semId      = document.getElementById('semesterSel').value;
+  if (!subjectId || !examTypeId || !semId) {
+    alert('Please select subject, exam type and semester.'); return;
+  }
+
+  fetch(`${AJAX_STUDENTS}?subject_id=${subjectId}`)
+    .then(r => r.json())
+    .then(data => {
+      renderMarksRows(data.students);
+      document.getElementById('hiddenSubject').value   = subjectId;
+      document.getElementById('hiddenExamType').value  = examTypeId;
+      document.getElementById('hiddenSemester').value  = semId;
+      document.getElementById('marksLabel').textContent =
+        document.getElementById('subjectSel').selectedOptions[0].text + ' – ' +
+        document.getElementById('examTypeSel').selectedOptions[0].text;
+      document.getElementById('marksSection').style.display = 'block';
+    });
+});
+
+function renderMarksRows(students) {
+  const tbody = document.getElementById('marksRows');
+  if (!students.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:32px">No students in this semester.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = students.map((s, i) => `
+    <tr>
+      <td style="color:#94a3b8;font-size:13px">${i+1}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar">${s.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase()}</div>
+          <span style="font-weight:600;font-size:14px">${s.name}</span>
+        </div>
+      </td>
+      <td><code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:12px">${s.enrollment}</code></td>
+      <td>
+        <input type="number" name="marks_${s.id}" min="0" max="${maxMarks}" step="0.5"
+          class="form-control-custom marks-input" style="width:140px"
+          placeholder="0 – ${maxMarks}" oninput="updateStatus(this, ${s.id})"/>
+      </td>
+      <td><span id="status_${s.id}" style="font-size:13px;color:#94a3b8">—</span></td>
+    </tr>
+  `).join('');
+}
+
+function updateStatus(input, id) {
+  const val = parseFloat(input.value);
+  const el  = document.getElementById(`status_${id}`);
+  if (isNaN(val)) { el.textContent = '—'; el.style.color = '#94a3b8'; return; }
+  if (val >= passMarks) {
+    el.innerHTML = '<span class="badge-pass">Pass</span>';
+  } else {
+    el.innerHTML = '<span class="badge-fail">Fail</span>';
+  }
+}
+</script>
+{% endblock %}
